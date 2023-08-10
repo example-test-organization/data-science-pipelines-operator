@@ -12,6 +12,11 @@ on:
         default: 'vx.y.z'
         description: 'DSPO version tag to be selected to sync manifests from (for example: v1.0.0)'
         required: true
+      odh_manifest_org:
+        default: 'opendatahub-io'
+        description: 'The GH org for odh-manifest.'
+        required: true
+
 jobs:
   send-pull-requests:
     runs-on: ubuntu-latest
@@ -22,13 +27,13 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          ref: ${{ github.event.inputs.src_branch }}
+          ref: ${{ inputs.src_branch }}
           repository: opendatahub-io/data-science-pipelines-operator
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Send pull-request
         run: |
-          TARGET_TAG=${{ github.event.inputs.target_tag }}
+          TARGET_TAG=${{ inputs.target_tag }}
           REPOSITORY="dsp-developers/odh-manifests"
           FOLDER="bin/$REPOSITORY"
           BRANCH_NAME="chore-update-scripts-to-$TARGET_TAG"
@@ -46,7 +51,7 @@ jobs:
           git config user.email "140449482+dsp-developers@users.noreply.github.com"
           git config user.name "dsp-developers"
 
-          git remote add upstream https://github.com/opendatahub-io/odh-manifests.git
+          git remote add upstream https://github.com/{{ inputs.odh_manifest_org }}/odh-manifests.git
           git fetch upstream
 
           # Create a new feature branch for the changes.
@@ -71,6 +76,4 @@ jobs:
             --title "Update DSP Operator manifests to $TARGET_TAG" \
             --head "$BRANCH_NAME" \
             --base "master"
-            --repo https://github.com/opendatahub-io/odh-manifests
-        env:
-          GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+            --repo https://github.com/{{ inputs.odh_manifest_org }}/odh-manifests
