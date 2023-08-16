@@ -2,6 +2,24 @@ name: odh-manifests sync
 
 run-name: Sync manifests in odh-manifests
 on:
+  workflow_call:
+    inputs:
+      src_branch:
+        type: string
+        default: 'v1.x.x'
+        description: 'Source branch to build DSPO/DSP from (for example: v1.0.x)'
+        required: true
+      target_tag:
+        type: string
+        default: 'v1.x.x'
+        description: 'DSPO version tag to be selected to sync manifests from (for example: v1.0.0)'
+        required: true
+      # This is included for dev testing this workflow.
+      odh_manifest_org:
+        type: string
+        default: 'opendatahub-io'
+        description: 'The GH org for odh-manifest.'
+        required: true
   workflow_dispatch:
     inputs:
       src_branch:

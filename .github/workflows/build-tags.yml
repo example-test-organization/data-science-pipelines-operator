@@ -1,6 +1,28 @@
 name: Build images from sources.
 run-name: Build images from sources.
 on:
+  workflow_call:
+    inputs:
+      src_branch:
+        type: string
+        default: 'v1.0.x'
+        description: 'Source branch to build DSPO/DSP from'
+        required: true
+      target_tag:
+        type: string
+        default: 'vx.y.z'
+        description: 'Target Image Tag'
+        required: true
+      quay_org:
+        type: string
+        default: 'opendatahub'
+        description: 'Quay Organization'
+        required: true
+      dsp_org_repo:
+        type: string
+        default: 'opendatahub-io/data-science-pipelines'
+        description: 'DSP org/repo'
+        required: true
   workflow_dispatch:
     inputs:
       src_branch:

@@ -1,0 +1,57 @@
+name: "Release Create"
+run-name: Create Release
+on:
+  pull_request:
+    types:
+      - closed
+    paths:
+      - config/base/params.env
+jobs:
+  create_tag_release:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release')
+    steps:
+
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Creates a release in GitHub
+        run: |
+          echo "Create a tag release for `x.y+1.z` in DSPO and DSP (e.g. `v1.3.0`)"
+
+          echo ${{github.event.pull_request.body}} > /tmp/body-file-raw.txt
+          sed -n '/^```yaml/,/^```/ p' < data.yaml | sed '/^```/ d' > /tmp/config.yaml
+          echo Parsed config from PR body:
+          yq /tmp/config.yaml
+
+          target_version_tag=$(yq .target_version_tag /tmp/config.yaml)
+          previous_version_tag=$(yq .previous_release_tag /tmp/config.yaml)
+          release_branch=$(yq .release_branch /tmp/config.yaml)
+
+          gh release create ${target_version_tag} --target ${release_branch} --generate-notes --notes-start-tag ${previous_version_tag}
+
+          cat <<"EOF" >> /tmp/release-notes.md
+          Any changes for the DSP component for ${target_version_tag} can
+          be found [here](https://github.com/opendatahub-io/data-science-pipelines/releases/tag/${target_version_tag}).
+          ```
+          EOF
+          echo "$(gh release view ${target_version_tag} --json body --jq .body)" >> /tmp/release-notes.md
+          gh release edit ${target_version_tag} --notes-file /tmp/release-notes.md
+          rm /tmp/release-notes.md
+        env:
+          GITHUB_TOKEN: ${{ github.TOKEN }}
+        shell: bash
+
+  sync_manifests:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release')
+    needs: create_tag_release
+    steps:
+      - name: sync
+        uses: ./.github/workflows/odh-manifests-PR-sync.yml
+        secrets: inherit
+        with:
+          src_branch: ""
+          target_tag: ""
+          odh_manifest_org: ""
+
