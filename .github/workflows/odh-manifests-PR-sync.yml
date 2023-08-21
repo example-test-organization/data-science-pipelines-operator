@@ -87,8 +87,11 @@ jobs:
           echo Rsync Complete
 
           # Commit the changes and push the feature branch to origin
+          echo "Changes Summary:"
           git status
-
+          
+          if [[ `git status --porcelain` ]]; then
+          
           git add .
           git commit -m "Update DSPO to $TARGET_TAG"
           git push origin $BRANCH_NAME -f
@@ -99,3 +102,11 @@ jobs:
             --title "Update DSP Operator manifests to $TARGET_TAG" \
             --head "${{ env.GH_USER_NAME}}:$BRANCH_NAME" \
             --base "master"
+          
+          echo "::notice:: Changes detected in manifests, PR To ODH-Manifest Repo created."
+
+          else
+            echo "::notice:: Changes No changes to manifests requested, no pr required to odh-manifests."
+          fi
+
+ 
