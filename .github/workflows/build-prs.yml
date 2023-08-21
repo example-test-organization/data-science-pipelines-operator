@@ -1,9 +1,11 @@
 name: Build images for PRs
 on:
-  workflow_run:
-    workflows: ["Trigger build images for PRs"]
-    types:
-      - completed
+  workflow_dispatch:
+
+#  workflow_run:
+#    workflows: ["Trigger build images for PRs"]
+#    types:
+#      - completed
 env:
   IMAGE_REPO_DSPO: data-science-pipelines-operator
   QUAY_ORG: opendatahub
