@@ -9,7 +9,7 @@ on:
 jobs:
   create_tag_release:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release')
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release-automation')
     steps:
 
       - name: checkout
@@ -44,7 +44,7 @@ jobs:
 
   sync_manifests:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release')
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release-automation')
     needs: create_tag_release
     steps:
       - name: sync
