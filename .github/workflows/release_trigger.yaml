@@ -1,0 +1,34 @@
+name: "Trigger Release Create"  # This is used by release_creat.yaml on.workflow_run.workflows, change with caution
+on:
+  pull_request_target:
+    types:
+      - closed
+    paths:
+      - config/base/params.env
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  upload-data:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'release-automation') # && github.event.pull_request.merged
+    steps:
+      - uses: actions/checkout@v2
+      - name: Save PR payload
+        shell: bash
+        run: |
+          mkdir -p ./pr
+          
+          cat <<"EOF" >> /tmp/body-file-raw.txt
+          ${{github.event.pull_request.body}}
+          EOF
+          
+          sed -n '/^```yaml/,/^```/ p' < /tmp/body-file-raw.txt | sed '/^```/ d' > /pr/config.yaml
+          
+          echo Parsed config from PR body:
+          yq /pr/config.yaml
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: pr
+          path: pr/
