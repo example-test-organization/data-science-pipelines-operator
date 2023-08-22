@@ -24,9 +24,9 @@ jobs:
           echo ${{github.event.pull_request.body}} > /tmp/body-file-raw.txt
           
           echo rawbody:
-          cat /tmp/config.yaml
+          cat /tmp/body-file-raw.txt
           
-          sed -n '/^```yaml/,/^```/ p' < data.yaml | sed '/^```/ d' > /tmp/config.yaml
+          sed -n '/^```yaml/,/^```/ p' < /tmp/body-file-raw.txt | sed '/^```/ d' > /tmp/config.yaml
           
           echo cat cat /tmp/config.yaml after sed: 
           cat /tmp/config.yaml
