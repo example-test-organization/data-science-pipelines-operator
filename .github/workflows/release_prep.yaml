@@ -43,6 +43,7 @@ env:
   DSP_REPOSITORY_FULL: ${{ inputs.gh_org }}/data-science-pipelines
   PREVIOUS_RELEASE_TAG: ${{ inputs.previous_release_tag }}
   OVERWRITE_IMAGES: ${{ inputs.overwrite_imgs }}
+  CONFIG_TEMPLATE: "./.github/scripts/release_prep/templates/config.yaml"
 jobs:
   prereqs:
     name: Prerequisites
@@ -54,74 +55,20 @@ jobs:
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.DSP_DEVS_ACCESS_TOKEN }}
-
       - name: compatibility doc
         id: vars
         env:
           GH_TOKEN: ${{ secrets.DSP_DEVS_ACCESS_TOKEN }}
-        run: |
-          echo "Ensure compatibility.yaml is upto date, and generate a new compatibility.md. Use [release-tools] to accomplish this"
+          GH_USER_NAME: ${{ env.GH_USER_NAME }}
+          GH_USER_EMAIL: ${{ env.GH_USER_EMAIL }}
+          TARGET_RELEASE: ${{ env.TARGET_RELEASE }}
+          MINOR_RELEASE_WILDCARD: ${{ env.MINOR_RELEASE_WILDCARD }}
+          MINOR_RELEASE_BRANCH: ${{ env.MINOR_RELEASE_BRANCH }}
+          DSPO_REPOSITORY_FULL: ${{ env.DSPO_REPOSITORY_FULL }}
+          DSPO_REPOSITORY: ${{ env.DSPO_REPOSITORY }}
+        run: ./.github/scripts/release_prep/prereqs.sh
 
-          BRANCH_NAME="compatibility-doc-generate-${{ env.TARGET_RELEASE }}"
-
-          git config --global user.email "${{ env.GH_USER_EMAIL }}"
-          git config --global user.name "${{ env.GH_USER_NAME }}"
-          git remote add ${{ env.GH_USER_NAME }} https://${{ env.GH_USER_NAME }}:${{ secrets.DSP_DEVS_ACCESS_TOKEN }}@github.com/${{ env.GH_USER_NAME }}/${{ env.DSPO_REPOSITORY }}.git
-          git checkout -B ${BRANCH_NAME}
-
-          echo "Created branch: ${BRANCH_NAME}"
-          echo "Checking if compatibility.yaml contains ${{ env.TARGET_RELEASE }} release...."
-
-          contains_rel=$(cat docs/release/compatibility.yaml | yq '[.[].dsp] | contains(["${{ env.MINOR_RELEASE_WILDCARD }}"])')
-
-          if [[ "$contains_rel" == "false" ]]; then
-
-          cat <<EOF >> /tmp/error.txt
-          compatibility.yaml has NOT been updated with target release.
-
-          Please add ${{ env.MINOR_RELEASE_WILDCARD }} dsp row in compatibility.yaml,
-
-          then regenerate the compatibility.md by following the instructions here:
-          https://github.com/opendatahub-io/data-science-pipelines-operator/tree/main/scripts/release#compatibility-doc-generation
-          EOF
-
-          echo ::error::$(cat /tmp/error.txt)
-          exit 1
-
-          fi
-
-          echo "Confirmed existence of ${{ env.MINOR_RELEASE_BRANCH }} in compatibility.yaml."
-
-          echo "Confirming that compatibility.md is upto date."
-          python ./scripts/release/release.py version_doc --input_file docs/release/compatibility.yaml --out_file docs/release/compatibility.md
-
-          git status
-
-          prereqs_successful=true
-          if [[ `git status --porcelain` ]]; then
-            echo "::notice:: Compatibility.md is not up to date with Compatibility.yaml, creating pr to synchronize."
-
-            git add .
-            git commit -m "Update DSPO to $TARGET_RELEASE"
-            git push ${{ env.GH_USER_NAME }} $BRANCH_NAME -f
-            gh pr create \
-              --repo https://github.com/${{ env.DSPO_REPOSITORY_FULL }} \
-              --body "This is an automated PR to update Data Science Pipelines Operator version compatibility doc." \
-              --title "Update DSP version compatibility doc." \
-              --head "${{ env.GH_USER_NAME}}:$BRANCH_NAME" \
-              --base "main"
-
-          echo "::notice:: PR to update compatibility doc has been created, please re-run this workflow once this PR is merged."
-          prereqs_successful=false
-
-          else
-          echo "Compatibility.md doc is up to date with Compatibility.yaml, continuing with workflow..."
-          fi
-
-          echo "prereqs_successful=${prereqs_successful}"
-          echo "prereqs_successful=${prereqs_successful}" >> $GITHUB_OUTPUT
-
-  cut_branches:
+  create_branches:
     name: Create Release Branches
     runs-on: ubuntu-latest
     needs: prereqs
@@ -135,29 +82,17 @@ jobs:
       - name: create branches
         env:
           GH_TOKEN: ${{ secrets.DSP_DEVS_ACCESS_TOKEN }}
-        run: |
-          echo "Cut branch ${{ env.MINOR_RELEASE_BRANCH }} from main/master"
+          GH_USER_NAME: ${{ env.GH_USER_NAME }}
+          MINOR_RELEASE_BRANCH: ${{ env.MINOR_RELEASE_BRANCH }}
+          DSPO_REPOSITORY_FULL: ${{ env.DSPO_REPOSITORY_FULL }}
+          DSP_REPOSITORY_FULL: ${{ env.DSP_REPOSITORY_FULL }}
+          WORKING_DIR: ${{ github.workspace }}
+        run: ./.github/scripts/release_prep/create_branches.sh
 
-          echo "Current branches in ${{ env.DSPO_REPOSITORY_FULL }}"
-          git branch -r
-
-          git checkout -B ${{ env.MINOR_RELEASE_BRANCH }}
-          git push origin ${{ env.MINOR_RELEASE_BRANCH }}
-          echo "Created DSPO ${{ env.MINOR_RELEASE_BRANCH }} branch"
-
-          echo "Current branches in ${{ env.DSP_REPOSITORY_FULL }}"
-          DSP_DIR=$(dirname ${{ github.workspace }})/data-science-pipelines
-          git clone \
-            --depth=1 \
-            --branch=master \
-            https://${{ env.GH_USER_NAME}}:${{ secrets.DSP_DEVS_ACCESS_TOKEN }}@github.com/${{ env.DSP_REPOSITORY_FULL }} \
-            ${DSP_DIR}
-          cd ${DSP_DIR}
-          git checkout -B ${{ env.MINOR_RELEASE_BRANCH }}
-          git push origin ${{ env.MINOR_RELEASE_BRANCH }}
-          echo "Created DSP ${{ env.MINOR_RELEASE_BRANCH }} branch"
-
-
+  # NOTE: env from current workflow does not extend to re-usable workflows
+  # so "with:" commands do not get "env.*" context, but "needs.*.outputs.*" works
+  # this is a workaround.
+  # More Context: https://github.com/orgs/community/discussions/26671
   get-env-vars:
     name: Get Re-Usable Env Vars
     runs-on: ubuntu-latest
@@ -172,7 +107,7 @@ jobs:
 
   build_images:
     name: build-tags
-    needs: [cut_branches, get-env-vars]
+    needs: [create_branches, get-env-vars]
     if: needs.prereqs.outputs.prereqs_successful == 'true'
     uses: ./.github/workflows/build-tags.yml
     with:
@@ -193,49 +128,16 @@ jobs:
           token: ${{ secrets.DSP_DEVS_ACCESS_TOKEN }}
       - name: generate pr
         env:
-          branch: release_${{ env.TARGET_RELEASE }}
           GH_TOKEN: ${{ secrets.DSP_DEVS_ACCESS_TOKEN }}
-        # Note: The yaml in the body of the PR is used to feed inputs into the release workflow
-        # since there's no easy way to communicate information between the pr closing, and then triggering the
-        # release creation workflow.
-        # Therefore, take extra care when adding new code blocks in the PR body, or updating the existing one.
-        # Ensure any changes are compatible with the release_create workflow.
-        run: |
-          echo "Retrieve the sha images from the resulting workflow (check quay.io for the digests)."
-          echo "Using [release-tools] generate a params.env and submit a new pr to vx.y+1.**x** branch."
-          echo "For images pulled from registry, ensure latest images are upto date"
-
-          BRANCH_NAME="release-${{ env.TARGET_RELEASE }}"
-          git config --global user.email "${{ env.GH_USER_EMAIL }}"
-          git config --global user.name "${{ env.GH_USER_NAME }}"
-          git remote add ${{ env.GH_USER_NAME }} https://${{ env.GH_USER_NAME }}:${{ secrets.DSP_DEVS_ACCESS_TOKEN }}@github.com/${{ env.GH_USER_NAME }}/${{ env.DSPO_REPOSITORY }}.git
-          git checkout -B ${BRANCH_NAME}
-
-          echo "Created branch: ${BRANCH_NAME}"
-
-          python ./scripts/release/release.py params --quay_org ${{ env.QUAY_ORG }} --tag ${{ env.MINOR_RELEASE_TAG }} --out_file ./config/base/params.env \
-            --override="IMAGES_OAUTHPROXY=registry.redhat.io/openshift4/ose-oauth-proxy@sha256:ab112105ac37352a2a4916a39d6736f5db6ab4c29bad4467de8d613e80e9bb33"
-
-          git add .
-          git commit -m "Generate params for ${{ env.TARGET_RELEASE }}"
-          git push ${{ env.GH_USER_NAME }} $BRANCH_NAME -f
-
-          # Used to feed inputs to release creation workflow.
-          # target_version is used as the GH TAG
-          cat <<"EOF" >> /tmp/body-file.txt
-          This is an automated PR to prep Data Science Pipelines Operator for release.
-          ```yaml
-          odh_org: ${{ env.GH_ORG }}
-          release_branch: ${{ env.MINOR_RELEASE_BRANCH }}
-          target_version_tag: ${{ env.MINOR_RELEASE_TAG }}
-          previous_release_tag: ${{ env.PREVIOUS_RELEASE_TAG }}
-          ```
-          EOF
-
-          gh pr create \
-            --repo https://github.com/${{ env.DSPO_REPOSITORY_FULL }} \
-            --body-file /tmp/body-file.txt  \
-            --title "Release ${{ env.MINOR_RELEASE_TAG }}" \
-            --head "${{ env.GH_USER_NAME}}:$BRANCH_NAME" \
-            --label "release-automation" \
-            --base "${{ env.MINOR_RELEASE_BRANCH }}"
+          GH_USER_NAME: ${{ env.GH_USER_NAME }}
+          GH_USER_EMAIL: ${{ env.GH_USER_EMAIL }}
+          TARGET_RELEASE: ${{ env.TARGET_RELEASE }}
+          MINOR_RELEASE_BRANCH: ${{ env.MINOR_RELEASE_BRANCH }}
+          DSPO_REPOSITORY: ${{ env.DSPO_REPOSITORY }}
+          DSPO_REPOSITORY_FULL: ${{ env.DSPO_REPOSITORY_FULL }}
+          GH_ORG: ${{ env.GH_ORG }}
+          QUAY_ORG: ${{ env.QUAY_ORG }}
+          MINOR_RELEASE_TAG: ${{ env.MINOR_RELEASE_TAG }}
+          PREVIOUS_RELEASE_TAG: ${{ env.PREVIOUS_RELEASE_TAG }}
+          CONFIG_TEMPLATE:  ${{ env.CONFIG_TEMPLATE }}
+        run: ./.github/scripts/release_prep/generate_pr.sh
