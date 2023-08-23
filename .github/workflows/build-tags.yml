@@ -70,146 +70,146 @@ env:
   TARGET_IMAGE_TAG: ${{ inputs.target_tag }}
   OVERWRITE_IMAGES: ${{ inputs.overwrite_imgs }}
 jobs:
-#  dspo-build:
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: read
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: ./.github/actions/build
-#        name: Build Image
-#        with:
-#          IMAGE_REPO: ${{ env.IMAGE_REPO_DSPO }}
-#          DOCKERFILE: Dockerfile
-#          GH_REPO: ${{ github.repository }}
-#          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
-#
-#  server-build:
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: read
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: ./.github/actions/build
-#        name: Build Image
-#        with:
-#          IMAGE_REPO: ${{ env.IMAGE_REPO_SERVER }}
-#          DOCKERFILE: backend/Dockerfile
-#          GH_REPO: ${{ inputs.dsp_org_repo }}
-#          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
-#
-#  ui-build:
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: read
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: ./.github/actions/build
-#        name: Build Image
-#        with:
-#          IMAGE_REPO: ${{ env.IMAGE_REPO_UI }}
-#          DOCKERFILE: frontend/Dockerfile
-#          GH_REPO: ${{ inputs.dsp_org_repo }}
-#          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
-#
-#  cache-build:
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: read
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: ./.github/actions/build
-#        name: Build Image
-#        with:
-#          IMAGE_REPO: ${{ env.IMAGE_REPO_CACHE }}
-#          DOCKERFILE: backend/Dockerfile.cacheserver
-#          GH_REPO: ${{ inputs.dsp_org_repo }}
-#          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
-#
-#  PA-build:
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: read
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: ./.github/actions/build
-#        name: Build Image
-#        with:
-#          IMAGE_REPO: ${{ env.IMAGE_REPO_PA }}
-#          DOCKERFILE: backend/Dockerfile.persistenceagent
-#          GH_REPO: ${{ inputs.dsp_org_repo }}
-#          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
-#
-#  SWF-build:
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: read
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: ./.github/actions/build
-#        name: Build Image
-#        with:
-#          IMAGE_REPO: ${{ env.IMAGE_REPO_SWF }}
-#          DOCKERFILE: backend/Dockerfile.scheduledworkflow
-#          GH_REPO: ${{ inputs.dsp_org_repo }}
-#          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
-#
-#  VC-build:
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: read
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: ./.github/actions/build
-#        name: Build Image
-#        with:
-#          IMAGE_REPO: ${{ env.IMAGE_REPO_VC }}
-#          DOCKERFILE: backend/Dockerfile.viewercontroller
-#          GH_REPO: ${{ inputs.dsp_org_repo }}
-#          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
-#
-#  ARTIFACT-build:
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: read
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: ./.github/actions/build
-#        name: Build Image
-#        with:
-#          IMAGE_REPO: ${{ env.IMAGE_REPO_ARTIFACT }}
-#          DOCKERFILE: backend/artifact_manager/Dockerfile
-#          GH_REPO: ${{ inputs.dsp_org_repo }}
-#          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
-#
-#  MLMD_WRITER-build:
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: read
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: ./.github/actions/build
-#        name: Build Image
-#        with:
-#          IMAGE_REPO: ${{ env.IMAGE_REPO_MLMD_WRITER }}
-#          DOCKERFILE: backend/metadata_writer/Dockerfile
-#          GH_REPO: ${{ inputs.dsp_org_repo }}
-#          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
-#
-#
-#  MLMD_GRPC-build:
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: read
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: ./.github/actions/build
-#        name: Build Image
-#        with:
-#          IMAGE_REPO: ${{ env.IMAGE_REPO_MLMD_GRPC }}
-#          DOCKERFILE: third-party/ml-metadata/Dockerfile
-#          GH_REPO: ${{ inputs.dsp_org_repo }}
-#          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
+  dspo-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build
+        name: Build Image
+        with:
+          IMAGE_REPO: ${{ env.IMAGE_REPO_DSPO }}
+          DOCKERFILE: Dockerfile
+          GH_REPO: ${{ github.repository }}
+          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
+
+  server-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build
+        name: Build Image
+        with:
+          IMAGE_REPO: ${{ env.IMAGE_REPO_SERVER }}
+          DOCKERFILE: backend/Dockerfile
+          GH_REPO: ${{ inputs.dsp_org_repo }}
+          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
+
+  ui-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build
+        name: Build Image
+        with:
+          IMAGE_REPO: ${{ env.IMAGE_REPO_UI }}
+          DOCKERFILE: frontend/Dockerfile
+          GH_REPO: ${{ inputs.dsp_org_repo }}
+          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
+
+  cache-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build
+        name: Build Image
+        with:
+          IMAGE_REPO: ${{ env.IMAGE_REPO_CACHE }}
+          DOCKERFILE: backend/Dockerfile.cacheserver
+          GH_REPO: ${{ inputs.dsp_org_repo }}
+          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
+
+  PA-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build
+        name: Build Image
+        with:
+          IMAGE_REPO: ${{ env.IMAGE_REPO_PA }}
+          DOCKERFILE: backend/Dockerfile.persistenceagent
+          GH_REPO: ${{ inputs.dsp_org_repo }}
+          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
+
+  SWF-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build
+        name: Build Image
+        with:
+          IMAGE_REPO: ${{ env.IMAGE_REPO_SWF }}
+          DOCKERFILE: backend/Dockerfile.scheduledworkflow
+          GH_REPO: ${{ inputs.dsp_org_repo }}
+          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
+
+  VC-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build
+        name: Build Image
+        with:
+          IMAGE_REPO: ${{ env.IMAGE_REPO_VC }}
+          DOCKERFILE: backend/Dockerfile.viewercontroller
+          GH_REPO: ${{ inputs.dsp_org_repo }}
+          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
+
+  ARTIFACT-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build
+        name: Build Image
+        with:
+          IMAGE_REPO: ${{ env.IMAGE_REPO_ARTIFACT }}
+          DOCKERFILE: backend/artifact_manager/Dockerfile
+          GH_REPO: ${{ inputs.dsp_org_repo }}
+          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
+
+  MLMD_WRITER-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build
+        name: Build Image
+        with:
+          IMAGE_REPO: ${{ env.IMAGE_REPO_MLMD_WRITER }}
+          DOCKERFILE: backend/metadata_writer/Dockerfile
+          GH_REPO: ${{ inputs.dsp_org_repo }}
+          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
+
+
+  MLMD_GRPC-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build
+        name: Build Image
+        with:
+          IMAGE_REPO: ${{ env.IMAGE_REPO_MLMD_GRPC }}
+          DOCKERFILE: third-party/ml-metadata/Dockerfile
+          GH_REPO: ${{ inputs.dsp_org_repo }}
+          OVERWRITE: ${{ env.OVERWRITE_IMAGES }}
 
   MLMD_ENVOY-build:
     runs-on: ubuntu-latest
