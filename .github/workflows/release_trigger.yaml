@@ -16,22 +16,12 @@ jobs:
       - uses: actions/checkout@v2
       - name: Save PR payload
         shell: bash
-        run: |
-          mkdir -p ./pr
-          
-          cat <<"EOF" >> /tmp/body-file-raw.txt
-          ${{github.event.pull_request.body}}
-          EOF
-          
-          sed -n '/^```yaml/,/^```/ p' < /tmp/body-file-raw.txt | sed '/^```/ d' > ./pr/config.yaml
-          echo Parsed config from PR body:
-          yq ./pr/config.yaml
-          
-          # Also store pr details
-          echo ${{ github.event.pull_request.number }} >> ./pr/pr_number
-          echo ${{ github.event.pull_request.state }} >> ./pr/pr_state
-          echo ${{ github.event.pull_request.head.sha }} >> ./pr/head_sha
-
+        env:
+          PR_BODY: ${{github.event.pull_request.body}}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_STATE: ${{ github.event.pull_request.state }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: ./.github/scripts/release_trigger/upload-data.sh
       - uses: actions/upload-artifact@v2
         with:
           name: pr
