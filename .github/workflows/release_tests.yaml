@@ -1,15 +1,15 @@
-name: "[Release] Tests"
+name: "Release Tests"
 run-name: Run Release Test Suite
 on:
   pull_request:
     branches:
       - v**
 jobs:
-  trigger_tests:
+  tests:
+    name: Release Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         name: checkout
       - name: sometests
-        run: |
-          echo "Perform any tests on the branch, confirm stability. If issues are found, they should be corrected in `main/master` and be cherry-picked into this branch."
+        run: ./.github/scripts/tests/tests.sh
