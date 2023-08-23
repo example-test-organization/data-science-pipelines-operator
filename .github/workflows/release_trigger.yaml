@@ -18,15 +18,15 @@ jobs:
         shell: bash
         run: |
           mkdir -p ./pr
-          
+
           cat <<"EOF" >> /tmp/body-file-raw.txt
           ${{github.event.pull_request.body}}
           EOF
-          
+
           sed -n '/^```yaml/,/^```/ p' < /tmp/body-file-raw.txt | sed '/^```/ d' > ./pr/config.yaml
           echo Parsed config from PR body:
           yq ./pr/config.yaml
-          
+
           # Also store pr details
           echo ${{ github.event.pull_request.number }} >> ./pr/pr_number
           echo ${{ github.event.pull_request.state }} >> ./pr/pr_state
