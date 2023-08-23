@@ -59,67 +59,14 @@ jobs:
         id: vars
         env:
           GH_TOKEN: ${{ secrets.DSP_DEVS_ACCESS_TOKEN }}
-        run: |
-          echo "Ensure compatibility.yaml is upto date, and generate a new compatibility.md. Use [release-tools] to accomplish this"
-
-          BRANCH_NAME="compatibility-doc-generate-${{ env.TARGET_RELEASE }}"
-
-          git config --global user.email "${{ env.GH_USER_EMAIL }}"
-          git config --global user.name "${{ env.GH_USER_NAME }}"
-          git remote add ${{ env.GH_USER_NAME }} https://${{ env.GH_USER_NAME }}:${{ secrets.DSP_DEVS_ACCESS_TOKEN }}@github.com/${{ env.GH_USER_NAME }}/${{ env.DSPO_REPOSITORY }}.git
-          git checkout -B ${BRANCH_NAME}
-
-          echo "Created branch: ${BRANCH_NAME}"
-          echo "Checking if compatibility.yaml contains ${{ env.TARGET_RELEASE }} release...."
-
-          contains_rel=$(cat docs/release/compatibility.yaml | yq '[.[].dsp] | contains(["${{ env.MINOR_RELEASE_WILDCARD }}"])')
-
-          if [[ "$contains_rel" == "false" ]]; then
-
-          cat <<EOF >> /tmp/error.txt
-          compatibility.yaml has NOT been updated with target release.
-
-          Please add ${{ env.MINOR_RELEASE_WILDCARD }} dsp row in compatibility.yaml,
-
-          then regenerate the compatibility.md by following the instructions here:
-          https://github.com/opendatahub-io/data-science-pipelines-operator/tree/main/scripts/release#compatibility-doc-generation
-          EOF
-
-          echo ::error::$(cat /tmp/error.txt)
-          exit 1
-
-          fi
-
-          echo "Confirmed existence of ${{ env.MINOR_RELEASE_BRANCH }} in compatibility.yaml."
-
-          echo "Confirming that compatibility.md is upto date."
-          python ./scripts/release/release.py version_doc --input_file docs/release/compatibility.yaml --out_file docs/release/compatibility.md
-
-          git status
-
-          prereqs_successful=true
-          if [[ `git status --porcelain` ]]; then
-            echo "::notice:: Compatibility.md is not up to date with Compatibility.yaml, creating pr to synchronize."
-
-            git add .
-            git commit -m "Update DSPO to $TARGET_RELEASE"
-            git push ${{ env.GH_USER_NAME }} $BRANCH_NAME -f
-            gh pr create \
-              --repo https://github.com/${{ env.DSPO_REPOSITORY_FULL }} \
-              --body "This is an automated PR to update Data Science Pipelines Operator version compatibility doc." \
-              --title "Update DSP version compatibility doc." \
-              --head "${{ env.GH_USER_NAME}}:$BRANCH_NAME" \
-              --base "main"
-
-          echo "::notice:: PR to update compatibility doc has been created, please re-run this workflow once this PR is merged."
-          prereqs_successful=false
-
-          else
-          echo "Compatibility.md doc is up to date with Compatibility.yaml, continuing with workflow..."
-          fi
-
-          echo "prereqs_successful=${prereqs_successful}"
-          echo "prereqs_successful=${prereqs_successful}" >> $GITHUB_OUTPUT
+          GH_USER_NAME: ${{ env.GH_USER_NAME }}
+          GH_USER_EMAIL: ${{ env.GH_USER_EMAIL }}
+          TARGET_RELEASE: ${{ env.TARGET_RELEASE }}
+          MINOR_RELEASE_WILDCARD: ${{ env.MINOR_RELEASE_WILDCARD }}
+          MINOR_RELEASE_BRANCH: ${{ env.MINOR_RELEASE_BRANCH }}
+          DSPO_REPOSITORY_FULL: ${{ env.DSPO_REPOSITORY_FULL }}
+          DSPO_REPOSITORY: ${{ env.DSPO_REPOSITORY }}
+        run: ./.github/scripts/release_prep/prereqs.sh
 
   cut_branches:
     name: Create Release Branches
