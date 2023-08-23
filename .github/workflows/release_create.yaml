@@ -21,41 +21,15 @@ jobs:
     steps:
       - name: 'Download artifact'
         uses: actions/github-script@v3.1.0
+        env:
+          GH_WORKSPACE: ${{github.workspace}}
+          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
         with:
-          script: |
-            var artifacts = await github.actions.listWorkflowRunArtifacts({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               run_id: ${{github.event.workflow_run.id }},
-            });
-            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == "pr"
-            })[0];
-            var download = await github.actions.downloadArtifact({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               artifact_id: matchArtifact.id,
-               archive_format: 'zip',
-            });
-            var fs = require('fs');
-            fs.writeFileSync('${{github.workspace}}/pr.zip', Buffer.from(download.data));
+          script: ./.github/scripts/util/fetch-data.sh
       - run: unzip pr.zip
       - shell: bash
         id: vars
-        run: |
-          cat ./config.yaml
-         
-          target_version_tag=$(yq .target_version_tag ./config.yaml)
-          previous_version_tag=$(yq .previous_release_tag ./config.yaml)
-          release_branch=$(yq .release_branch ./config.yaml)
-          odh_org=$(yq .odh_org ./config.yaml)
-          pr_number=$(cat ./pr_number)
-          
-          echo "pr_number=${pr_number}" >> $GITHUB_OUTPUT
-          echo "target_version_tag=${target_version_tag}" >> $GITHUB_OUTPUT
-          echo "previous_version_tag=${previous_version_tag}" >> $GITHUB_OUTPUT
-          echo "release_branch=${release_branch}" >> $GITHUB_OUTPUT
-          echo "odh_org=${odh_org}" >> $GITHUB_OUTPUT
+        run: ./.github/scripts/release_create/vars.sh
 
   create_tag_release:
     runs-on: ubuntu-latest
@@ -64,30 +38,12 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
       - name: Creates a release in GitHub
-        run: |
-
-          target_version_tag=${{ needs.fetch-data.outputs.target_version_tag }}
-          previous_version_tag=${{ needs.fetch-data.outputs.previous_version_tag }}
-          release_branch=${{ needs.fetch-data.outputs.release_branch }}
-
-          echo "Create a tag release for x.y+1.z in DSPO and DSP (e.g. v1.3.0)"
-
-          gh release create ${target_version_tag} --target ${release_branch} --generate-notes --notes-start-tag ${previous_version_tag}
-
-          cat <<EOF >> /tmp/release-notes.md
-          Any changes for the DSP component for ${target_version_tag} can
-          be found [here](https://github.com/opendatahub-io/data-science-pipelines/releases/tag/${target_version_tag}).
-          EOF
-
-          echo "$(gh release view ${target_version_tag} --json body --jq .body)" >> /tmp/release-notes.md
-
-          echo "Release notes:"
-          cat /tmp/release-notes.md
-
-          gh release edit ${target_version_tag} --notes-file /tmp/release-notes.md
-          rm /tmp/release-notes.md
+        run: ./.github/scripts/release_create/create_tag_release.sh
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          TARGET_VERSION_TAG: ${{ needs.fetch-data.outputs.target_version_tag }}
+          PREVIOUS_VERSION_TAG: ${{ needs.fetch-data.outputs.previous_version_tag }}
+          RELEASE_BRANCH: ${{ needs.fetch-data.outputs.release_branch }}
         shell: bash
 
   sync_manifests:
@@ -108,11 +64,4 @@ jobs:
       - create_tag_release
     steps:
       - uses: actions/checkout@v3
-      - run: |
-          
-          cat <<"EOF" >> /tmp/body-file.txt
-          Release created successfully: 
-          https://github.com/example-test-organization/data-science-pipelines-operator/releases/tag/${{ needs.fetch-data.outputs.target_version_tag }}
-          EOF
-
-          gh pr comment ${{ needs.fetch-data.outputs.pr_number }} --body-file /tmp/body-file.txt
+      - run: ./.github/scripts/release_create/notify.sh
