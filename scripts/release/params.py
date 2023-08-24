@@ -100,7 +100,7 @@ def generate_params(args):
             image_repo = QUAY_REPOS[image_env_var]
             digest = fetch_quay_repo_tag_digest(image_repo, quay_org, tag)
             image_repo_with_digest = f"{image_repo}@{digest}"
-            images.append(f"{image_env_var}=quay.io/opendatahub/{image_repo_with_digest}")
+            images.append(f"{image_env_var}=quay.io/{quay_org}/{image_repo_with_digest}")
 
     # Fetch RH Registry images
     rh_registry_images = {
