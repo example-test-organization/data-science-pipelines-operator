@@ -155,7 +155,7 @@ func (r *DSPAReconciler) buildCondition(conditionType string, dspa *dspav1alpha1
 func (r *DSPAReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("namespace", req.Namespace).WithValues("dspa_name", req.Name)
 
-	log.V(1).Info("DataSciencePipelinesApplication Reconciler called.")
+	log.V(1).Info("[SOMECHANGE] DataSciencePipelinesApplication Reconciler called.")
 
 	params := &DSPAParams{}
 
