@@ -39,7 +39,6 @@ var=${MINOR_RELEASE_BRANCH} yq -i '.release_branch=env(var)' $tmp_config
 var=${MINOR_RELEASE_TAG} yq -i '.target_version_tag=env(var)' $tmp_config
 var=${PREVIOUS_RELEASE_TAG} yq -i '.previous_release_tag=env(var)' $tmp_config
 
-
 cat <<"EOF" > $body_txt
 This is an automated PR to prep Data Science Pipelines Operator for release.
 ```yaml
@@ -52,7 +51,6 @@ sed -i "/<CONFIG_HERE>/{
     r ${tmp_config}
 }" $body_txt
 
-
 pr_url=$(gh pr create \
   --repo https://github.com/${DSPO_REPOSITORY_FULL} \
   --body-file $body_txt \
@@ -60,7 +58,5 @@ pr_url=$(gh pr create \
   --head "${GH_USER_NAME}:$BRANCH_NAME" \
   --label "release-automation" \
   --base "${MINOR_RELEASE_BRANCH}")
-
-
 
 echo "::notice:: PR successfully created: ${pr_url}"

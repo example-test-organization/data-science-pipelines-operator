@@ -127,6 +127,7 @@ jobs:
         name: checkout
         with:
           token: ${{ secrets.DSP_DEVS_ACCESS_TOKEN }}
+          ref: ${{ env.MINOR_RELEASE_BRANCH }}
       - name: generate pr
         env:
           GH_TOKEN: ${{ secrets.DSP_DEVS_ACCESS_TOKEN }}
