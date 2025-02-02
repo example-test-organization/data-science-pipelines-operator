@@ -28,7 +28,8 @@ git checkout -B ${BRANCH_NAME}
 echo "Created branch: ${BRANCH_NAME}"
 echo "Checking if compatibility.yaml contains ${TARGET_RELEASE} release...."
 
-contains_rel=$(cat docs/release/compatibility.yaml | rel=${MINOR_RELEASE_WILDCARD} yq '[.[].dsp] | contains([env(rel)])')
+# convert rel to string in env(rel) explicitly to avoid comparing str to yq float
+contains_rel=$(cat docs/release/compatibility.yaml | rel=${MINOR_RELEASE_WILDCARD} yq '[.[].dsp] | contains([""+env(rel)])')
 
 if [[ "$contains_rel" == "false" ]]; then
 
