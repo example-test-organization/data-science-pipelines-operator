@@ -67,6 +67,7 @@ jobs:
           MINOR_RELEASE_BRANCH: ${{ env.MINOR_RELEASE_BRANCH }}
           DSPO_REPOSITORY_FULL: ${{ env.DSPO_REPOSITORY_FULL }}
           DSPO_REPOSITORY: ${{ env.DSPO_REPOSITORY }}
+          DSP_PIPELINES_REPOSITORY_FULL: ${{ env.DSP_PIPELINES_REPOSITORY_FULL }}
         run: ./.github/scripts/release_prep/prereqs.sh
 
   create_branches:

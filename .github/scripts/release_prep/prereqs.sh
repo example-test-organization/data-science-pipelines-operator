@@ -14,6 +14,7 @@ check_branch_exists(){
 
 check_branch_exists ${DSPO_REPOSITORY_FULL} ${MINOR_RELEASE_BRANCH}
 check_branch_exists ${DSP_REPOSITORY_FULL} ${MINOR_RELEASE_BRANCH}
+check_branch_exists ${DSP_PIPELINES_REPOSITORY_FULL} ${MINOR_RELEASE_BRANCH}
 
 echo "Ensure compatibility.yaml is upto date, and generate a new compatibility.md. Use [release-tools] to accomplish this"
 

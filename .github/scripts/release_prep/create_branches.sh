@@ -28,7 +28,7 @@ echo "Current branches in ${DSP_PIPELINES_REPOSITORY_FULL}"
 DSP_PIPELINES_DIR=$(dirname ${WORKING_DIR})/ilab-on-ocp
 git clone \
   --depth=1 \
-  --branch=master \
+  --branch=main \
   https://${GH_USER_NAME}:${GH_TOKEN}@github.com/${DSP_PIPELINES_REPOSITORY_FULL} \
   ${DSP_PIPELINES_DIR}
 pushd ${DSP_PIPELINES_DIR}
